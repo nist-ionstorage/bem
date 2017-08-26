@@ -1,0 +1,8 @@
+#
+# This script converts a file ($1) written for driverc input into
+# a file ($2) written for driverf input.  
+#
+sed s/T/3/ $1 > fastdata.tem
+sed s/Q/4/ fastdata.tem > $2
+rm fastdata.tem
+

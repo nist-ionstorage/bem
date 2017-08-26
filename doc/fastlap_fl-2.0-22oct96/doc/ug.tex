@@ -1,0 +1,1425 @@
+% fastlap user's guide root latex file
+%\documentstyle[12pt,psfig]{article}
+\documentstyle[12pt]{article}
+
+% latex requires full path names so setup \topdir before re-latexing
+\newcommand{\topdir}{/usr/users/res/xmeyer/fastcap/fastcap/doc}
+\newcommand{\figuredir}{\topdir/figures}
+
+%
+% figure macro inserted by /nfs/sobolev/sobolev2/ksn/bin/rs6000/putfig
+\newcommand{\fig}[9]{ % filename label caption vsp placement horizo verto horizs verts
+\begin{figure}[#5]
+\vspace*{#4pt}
+\special{psfile=#1,hoffset=#6,voffset=#7,hscale=#8,vscale=#9}
+\caption{#3}
+\label{#2}
+\end{figure}
+}
+%
+%
+% short figure macro inserted by /nfs/sobolev/sobolev2/ksn/bin/rs6000/putfig
+\newcommand{\sfig}[7]{ % filename vsp placement horizo verto horizs verts
+\begin{figure}[#3]
+\vspace*{#2pt}
+\special{psfile=#1,hoffset=#4,voffset=#5,hscale=#6,vscale=#7}
+\end{figure}
+}
+%
+%
+% short figure (w/label) macro inserted by /nfs/sobolev/sobolev2/ksn/bin/rs6000/putfig
+\newcommand{\slfig}[8]{ % filename label vsp placement horizo verto horizs verts
+\refstepcounter{figure}
+\begin{figure}[#4]
+\vspace*{#3pt}
+\special{psfile=#1,hoffset=#5,voffset=#6,hscale=#7,vscale=#8}
+\label{#2}
+\end{figure}
+}
+%
+%%&^^
+\pagestyle{headings}
+
+
+\setlength{\oddsidemargin}{0.25in}      % 1.25in left margin 
+\setlength{\evensidemargin}{0.00in}     % 1.00in left margin (even pages)
+\setlength{\topmargin}{0.25in}           % 1.25in top margin
+%\setlength{\textwidth}{6.25in}          % 6.25in text
+\setlength{\textwidth}{6in}             % 6in text
+\setlength{\textheight}{8.5in}            % Body ht for 1.25 margin 
+\addtolength{\topmargin}{-\headheight}  % No header, so compensate
+\addtolength{\topmargin}{-\headsep}     % for header height and separation
+
+\def \fas{FastLap }
+
+\begin{document}
+\bibliographystyle{ieeetr}
+\begin{titlepage}
+\vskip 36pt
+\begin{center}
+
+\hrule
+\vspace{ .2 in}
+{\Huge {\bf \fas} Version:\ 2.0}
+\vspace{ .14 in}
+\hrule
+
+\vskip 24pt
+\begin{quote}
+\fas is sub-program which can perform computations required in 
+the analysis of potential problems, such as the solution of 
+integral formulations of Laplace problems and the determination
+of field quantities due to collections of singularities.
+\end{quote}
+
+\vskip 120pt
+\hspace*{1.4in} 
+T. Korsmeyer \hfill K.\ Nabors \hfill  J.\ White \hspace*{1.4in}
+\vskip 24pt
+
+Research Laboratory {\em of}  Electronics \\
+\vskip 12pt
+Massachusetts Institute of Technology \\
+Cambridge, MA  02139 U.S.A.
+
+\vskip 36pt
+
+\today
+
+%\vskip 72pt
+
+\end{center}
+
+\vfill
+\noindent This work was supported by Advanced Research Projects
+Agency contracts N00014-87-K-825, MDA972-88-K-008, and  N00014-91-J-1698,
+National Science Foundation contracts MIP-8858764 A02, and ECS-9301189,
+Office of Naval Research contract N00014-90-J-1085,
+F.B.I.\ contract J-FBI-88-067, and grants from I.B.M.\,
+Digital Equipment Corporation, and Analog Devices.
+\end{titlepage}
+
+\pagenumbering{roman}
+\mbox{}
+\vfill
+
+\noindent 
+This software is being provided to you, the LICENSEE, by the Massachusetts
+Institute of Technology (M.I.T.) under the following license.  By
+obtaining, using and/or copying this software, you agree that you have
+read, understood, and will comply with these terms and conditions:  
+
+Permission to use, copy, modify and distribute this software and its
+documentation for any purpose and without fee or royalty is hereby granted,
+provided that you agree to comply with the following copyright notice and
+statements, including the disclaimer, and that the same appear on ALL
+copies of the software and documentation, including modifications that you
+make for internal use or for distribution:
+
+{\bf
+Copyright \copyright 1992 by the Massachusetts Institute of Technology.  
+All rights reserved.  
+}
+
+{\bf
+THIS SOFTWARE IS PROVIDED ``AS IS'', AND M.I.T. MAKES NO REPRESENTATIONS OR
+WARRANTIES, EXPRESS OR IMPLIED.  By way of example, but not limitation,
+M.I.T. MAKES NO REPRESENTATIONS OR WARRANTIES OF MERCHANTABILITY OR FITNESS
+FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF THE LICENSED SOFTWARE OR
+DOCUMENTATION WILL NOT INFRINGE ANY THIRD PARTY PATENTS, COPYRIGHTS,
+TRADEMARKS OR OTHER RIGHTS.   
+}
+
+{\bf
+The name of the Massachusetts Institute of Technology or M.I.T. may NOT be
+used in advertising or publicity pertaining to distribution of the
+software.  Title to copyright in this software and any associated
+documentation shall at all times remain with M.I.T., and USER agrees to
+preserve same.  
+}
+
+\newpage
+\tableofcontents
+\newpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\newpage
+
+\section{Release Notes}
+\subsection{Version 2.0}
+\label{ss:release20}
+\subsubsection{Major Changes}
+\begin{itemize}
+\item{The computation of the gradient of the kernel (or Green function) has been coded.}  
+This means that the gradient of the field may be computed,
+and problems cast as the ``source formulation'' may be solved.
+For readers not familiar with this jargon, this is the integral equation 
+one obtains by taking the gradient of the single-layer formulation and
+forming the scalar product with the evaluation point normal vector.
+
+\item{A generalized preconditioner has been added.}  Called the {\tt SP}
+preconditioner, this is an overlapping block preconditioner where the 
+local problems set up for inversion are formed in a more general way than 
+with the  {\tt OL} preconditioner.  In that preconditioner, local problems
+are formed by filling a matrix which maps all of the singularities in a 
+cube's first nearest neighbors to all of the evaluation points in the same
+set of cubes.  In the  {\tt SP} preconditioner, local problems are formed
+by filling a matrix  which maps all of the singularities in a 
+cube's first nearest neighbors to all of the evaluation points which ``belong''
+with them regardless of whether these evaluation points may be found in 
+this set of cubes.  In desingularized problems there is no guarantee that 
+the evaluation point which belongs to any singularity will be found in the
+same or even a neighboring cube.  Therefore the  {\tt OL} preconditioning
+algorithm may result in non-square local problems and poorly organized 
+mappings.  {\it The one-to-one relationship of singularities to evaluation 
+points is deduced from the input.}  If no preconditioning is used, there
+is no need to organized the input to imply this relationship.
+\end{itemize}
+
+\subsubsection{Minor Changes}
+\begin{itemize}
+\item{A bug in {\tt driver.c} has been fixed.}  {\tt shape} was incorrectly
+allocated.  
+\item{A bug in {\tt mulMats.c} has been fixed.}  A command to start the timer
+({\tt starttimer}) was missing in {\tt mulMatDirect}.  The time reported for
+direct operations is now believed to be correct.
+\end{itemize}
+
+\subsection{Version 1.9}
+\label{ss:release19}
+\subsubsection{Major Changes}
+\begin{itemize}
+\item{New options have been added to the capability of \fas.
+It is now possible to return to the calling program having only made
+a field computation and it is possible to specify the right-hand side
+vector explicitly, as in a single- or double-layer formulation.}
+
+\item{There are now separate data structures for singularities 
+(called {\tt snglrty}, formerly called {\tt charge}) and collocation 
+or field points (or more generally: ``evaluation points'') 
+(called {\tt fieldpt}).  The elements of these structures 
+are now sorted into two (possibly) different spatial decompositions.  The
+singularities are sorted into an oct-tree for the upward pass and
+the evaluation points are sorted into an oct-tree for the downward pass.
+This is the primary feature which has allowed for the more general 
+computations now possible with \fas.}
+
+\item{The generalization of the code requires a more complicated interface.
+The interface is described in detail in \S\ref{ss:iface}.}
+\end{itemize}
+
+\subsubsection{Minor Changes}
+\begin{itemize}
+\item{The convergence of the GMRES procedure is now based on the relative 
+reduction of the $L_2$ norm of the residual.  It used to be absolute.  
+This is a debatable point and a bigger debate could be had about 
+$L_\infty$ versus  $L_2$.}
+
+\item{The Gauss-Jordon inversion has been speeded up a bit by taking
+an {\tt if} out of the inner loop.  Pivoting has been turned off in 
+this routine.  It can be turned back on by setting PIVOT to ON
+in {\tt mulGlobal.h}.}
+
+\item{The orthogonalization in GMRES has been changed from classical
+Gramm-Schmidt to modified Gramm-Schmidt.}
+
+\item{The direct solution and explicit gmres options have been 
+eliminated.  These options were controlled by {\tt EXPGMR} and 
+{\tt DIRSOL}.}
+
+\item{There is no longer a test for redundant panels.}
+
+\item{Influence coefficients for panels are no longer normalized by area.  This
+normalization is not compatible with allowing all sorts of singularities. }
+\end{itemize}
+
+\subsection{Version 1.0}
+\label{ss:release10}
+\subsubsection{Major Changes}
+\begin{itemize}
+\item{Version 1.0 is algorithmically identical to the beta version.  Several bugs 
+in the code have been fixed and corrections to the documentation have been 
+made.} 
+
+\item{Version 1.0 is a major improvement over the beta version in one respect.  
+This is that this version may be invoked repeatedly by the calling program.
+This is required by many users who are performing time dependent calculations.
+The changes to the code all concern memory management. These changes have
+no affect on the use of the code in single-call applications.  Routines have
+been changed in the following files: {\tt fastlap.c, calcp.c, mulLocal.c,
+mulMulti.c, uglyalloc.c.}}
+\end{itemize}
+
+\subsubsection{Minor Changes}
+\begin{itemize}
+\item{Attempting to solve a system with a null right-hand side is trapped in 
+the procedure {\tt gmres}.  The code will abort.}
+
+\item{The iteration loop in the procedure {\tt gmres} has been modified so
+that at least one iteration will be performed even if the initial trial 
+vector is such that the tolerance criterion is satisfied.}
+
+\item{The distinction between setting {\tt numLev} to zero and unity has been
+corrected in the documentation.}
+\end{itemize}
+
+\newpage
+\section{Introduction}
+\label{s:intro}
+This manual describes \fas (\it Fast Lap\rm lace solver), a procedure 
+for solving general, three-dimensional, Laplace problems on 
+multiply-connected domains via low-order boundary-element (or panel), 
+or de-singularized methods.  It is intended that \fas can replace the typical 
+order $N^2$ procedures found in many codes requiring the solution of 
+Laplace's equation, and thereby reduce the computational effort 
+and memory requirements of these codes to nearly order $N$, where $N$ is 
+the number of boundary elements.  
+
+Laplace problems in the fields of hydrodynamics, aerodynamics, electro-statics, 
+and others,
+are often cast as boundary integral equations.  Upon discretization, these
+equations lead to large, dense linear systems which are usually solved 
+by iterative methods.  There are two order $N^2$ tasks associated with these
+methods:  calculating the $N^2$ entries  of the left-hand side matrix 
+when constructing  the system of equations,
+\footnote {
+When a direct formulation is used,
+there will be a similar order $N^2$ effort for the right-hand side.
+} 
+and calculating the iterative method residuals as a dense matrix-vector 
+product.
+The \fas algorithm explicitly computes only an order $N$
+subset of the matrix elements, and computes the residuals in 
+nearly order $N$ operations.  We refer to the technique used by \fas as a 
+pre-conditioned, adaptive, multipole-accelerated algorithm.  For the
+details of the theory as applied to Laplace problems see~\cite{nabors94}
+and~\cite{korsmeyer93},
+and for more background on: the preconditioner, see~\cite{vavasi92};
+the iterative solver (GMRES), see \cite{saad86}; and for multipole 
+acceleration, see \cite{greeng87} \cite{greeng88}.
+
+The \fas code itself, is an outgrowth of our work in electro-statics, 
+and is largely a modification and extension of the code FastCap 
+(\it Fast Cap\rm acitance extraction) \cite{nabors91} which solves  
+the first-kind, indirect problems which arise in electrostatics.
+
+This manual describes how to use \fas for the solution 
+of Laplace problems by a  low-order boundary element 
+method.  It is assumed that users are familiar with boundary element
+methods and currently have, or are developing, codes which require the
+solution of a three dimensional Laplace problem.  For most codes of this
+type, whether in statics or dynamics, the solution of the Laplace problem
+is the dominant computational burden so that the use of this module 
+rather than a typical order $N^2$ approach can make a significant 
+difference in the size of problem which can be addressed.
+
+\fas is written in traditional C, but the procedure is linkable to either 
+C or Fortran calling routines.  A 
+{\tt makefile} is provided with the distribution which will make
+complete example programs with both Fortran and C main programs calling the
+\fas procedure.  The {\tt makefile} itself serves as an example of how to 
+compile \fas and link it to your own program, while the example calling
+programs demonstrate how to solve various different potential problem
+integral formulations.
+
+\newpage
+\section{\fas Overview}
+\label{s:over}
+\fas has been created to accelerate the solution of Laplace problems
+cast as boundary integral equations.  
+The specific computation which is accelerated by the \fas procedure 
+is the evaluation of the potential at $M$ field or collocation points
+(or more generally: ``evaluation points'') due to $N$ singularities.  That is
+\begin{equation}
+\label{eq:field}
+b=Cq
+\end{equation}
+in which the matrix $C\in \Re^{M\times N}$ contains the influence 
+coefficients for the $N$ 
+singularities, whatever their type, the vector $q\in \Re^N$ contains 
+the strengths 
+of these singularities, and the vector $b\in \Re^M$ is the potential 
+(or its gradient) 
+at the $M$ evaluation points.  The important concept to understand is that
+this computation of a potential field appears in the inner loop of
+a typical iterative technique used to solve a boundary integral 
+equation.  As such, the potential field evaluation may be required
+many times (although much less than $N$ times, one hopes) to acheive 
+convergence of the iterative solution and may be required upon solution to 
+evaluate quantities on and away from the solution surface.
+
+As a matter of convenience, \fas incorporates a preconditioned 
+GMRES solution algorithm for linear systems.  Using 
+this feature imposes some restrictions on the problems which may be solved.
+\fas Version 2.0 supports:
+\begin{itemize}
+\item{
+square linear systems ({\it i.e.} $M=N$);
+}
+\item{
+constant distributions of sources and normal dipoles on quadralateral 
+and triangular panels, point sources, and gradients
+of these;\footnote{Inclusion of other singularities requires the coding of 
+the near-field (usually analytic) algorithm and the far-field (spherical
+harmonic expansion) algorithm into the if-blocks that select the
+algorithms to use depending on the singularity type.  Singularity
+influences which require more than one element of $q$ to 
+evaluate (such as some higher-order panel representations)  
+would be difficult to include.  Others, such as vortex blobs are 
+relatively straightforward.}
+}
+\item{
+Green's Theorem, single-layer, source formulation, and 
+desingularized formulation.
+}
+\end{itemize}
+
+An alternative to using the  preconditioned GMRES solution algorithm 
+for linear systems is to request simply a field 
+computation~(\ref{eq:field}).  In this case, the iterative solution 
+procedure is taking place in the calling routine and $b$ may not
+be exactly the vector required in that solution.  In other words,
+if a large part of the problem may be represented with the types
+of singularities supported by \fas, then this portion may be
+accelerated while some smaller portion is handled in a more 
+traditional way.  As an example to which this idea would be 
+applied, consider an airfoil problem in which the trailing edge and 
+initial wake panels are of higher order than the body and wake panels 
+which have contant strength.  As long as only an order $N$ portion of
+the problem is treated directly, great computational savings may
+be acheived by using \fas with a little imagination.
+
+Allowing \fas to be a flexible procedure has resulted in 
+a somewhat complicated interface.  Early versions of \fas 
+assumed constant strength panels with collocation at the panel 
+centroids and so the input consisted mainly of a collection of
+panel vertex coordinates.  Added flexibility requires that both
+the singularities and the evaluation points be specified along 
+with what type of calculation should be associated with each.
+Take the case of the general Green formulation discretized with 
+constant-strength, planar panels and collocated at panel centroids
+The calling program
+will have to provide a pointer to an array of panel vertices, a pointer to
+a list of singularity types (\it i.e. \rm {\tt CONSTANT SOURCE} 
+or {\tt CONSTANT DIPOLE}) for the inclusion of these singularities on 
+the right- and left-hand sides,  a pointer to a vector of boundary data 
+for these panels for the right-hand side computation, 
+and finally a pointer to an array of collocation points (these might be the
+panel centroids in this case, but need not be and in any case need not
+have a global ordering consistent with the singularity global ordering).
+Compare this with Version 1.0, where the input is a pointer to the panel
+vertex array, a pointer to the panel type, and a pointer to the boundary 
+data.   In \S\ref{ss:iface} the  {\tt fastlap} interface 
+is explained and examples of its use are found in the sample drivers.
+
+The key internal feature of \fas that allows for flexibility, 
+is the creation of separate data structures and cube hierarchies
+for the singularities and the evaluation points.
+The singularity cube hierarchy is associated with the upward pass or the
+accumulation of multipole expansions, and the evaluation point
+hierarchy  is associated with the downward pass or the distribution 
+of local expansions.
+(For a description of these upward and downward passes see the algorithm 
+description in~\cite{nabors94}).  That is, the upward pass is concerned
+with accumulating the contributions of the singularities to the potential,
+so it takes place in a cube hierarchy determined by the sorting of the 
+singularities.  On the other hand, the downward
+pass is concerned with distributing the contributions to the 
+evaluation points, so it takes place in a cube hierarchy determined 
+by the sorting of the evaluation points.  There is no reason for these 
+hierarchies to have any part of their structure in common aside from the 
+root cube.  It is the computation of the interaction field (the 
+conversion of multipole to local expansions) and the direct field 
+(the computation of the influence of a specific singularity at a 
+specific evaluation point), which links the two hierarchies.
+
+\newpage
+\section{Combining \fas With Your Code}
+\label{s:using}
+
+\fas is a linkable procedure which you can integrate into your own code
+to accelerate the computations required in the analyses of potential
+theory.  This section describes how to perform this program integration
+and how to configure the \fas module to your particular requirements.
+Example drivers, in both C and Fortran,  are provided  
+to guide you in the use of \fas. Making and using these drivers are  
+described in \S\ref{s:example}.  How to unpack the distribution
+is described in \S\ref{s:dist}.
+
+\subsection{Compiling \fas and Linking to C or Fortran}
+\label{ss:comp}
+
+This section describes the procedure to create an executable code 
+which calls the \fas procedure.  Normally, \fas does not produce any output
+beyond warnings and fatal errors.  However, you may wish to run \fas
+in a diagnostic mode where cpu time and memory use as well as
+other details are reported.  In that case, certain flags should be
+set before compilation.  For a description of these flags, see
+\S\ref{ss:setting}
+
+The \fas module is written in traditional C, but it is linkable to both
+C and Fortran.  As provided in the distribution, the module
+is configured for linking to C.  For linking to Fortran on many  
+systems, the name of the top level procedure, {\tt fastlap}, must 
+be changed to {\tt fastlap}$\!$\underline{\ \ }.
+There is a command in the {\tt makefile} provided with the distribution  
+which will perform this modification for you when you create the 
+example executable which has a main program written in Fortran.
+If your compiler does not require this, use the alternative line
+provided in the makefile in the rules section for {\tt fastlapf.c}.
+Also note that for mixed language programs the linker is invoked
+with the generic compile/link command of the language of the 
+main program.  Use this {\tt makefile} as a guide when you create 
+or modify the {\tt makefile} for your own code, whether the main 
+program is written in C or Fortran.
+
+You may wish to change the compile or link flags in the {\tt makefile} to 
+conform to your particular needs or to the peculiarities of your 
+operating system or compiler.  For instance you may wish to set a 
+certain level of optimization.  We find that with many compilers 
+using the highest level of optimization possible produces executables 
+which are nearly twice as fast as executables compiled with no optimization.
+
+In the case where you wish to collect and display \fas execution 
+timing information, \it i.e. \rm the {\tt TIMDAT} flag 
+(see Table \ref{t:flag}) is set to {\tt ON}, you will \it have \rm 
+to modify the compile flags in the makefile to suit your operating system. 
+Alternative compilation procedures for popular operating systems have
+been provided for you as choices for the definition of the 
+variable {\tt CFLAGS}.   Select the one which corresponds to your operating 
+system and leave the others commented out.  
+
+{\bf AIX system} users should use the AIX configuration regardless of 
+whether the timing routines are activated.
+
+{\bf IRIX system} users should note that their C compiler may default
+to ANSI C rather than traditional C, and so should use the {\tt -cckr}
+flag.
+
+{\bf HP-UX system} users should note that we have had difficulties 
+with memory management under HP-UX C.  Use the {\tt DEFINE}'s found
+in {uglyalloc.c} to implement the C library routines malloc and calloc rather 
+than those we provide to get started, but the difficulties may not 
+end there if {\tt fastlap} is called repeatedly as in a transient
+problem.
+
+\subsection{The Interface to \fas}
+\label{ss:iface}
+\fas is a flexible procedure which allows a number of different
+problem solutions and computations.  Consequently, setting up the input to 
+{\tt fastlap} properly is not trivial.  While the interface is described
+here, it is very useful to look carefully at the code of the example 
+drivers which are provided with the distribution.  Most of the possible
+uses of \fas are demonstrated in those codes.
+
+Recall that in Fortran, arguments are passed to procedures by address
+only, while in C, they are passed by value (which could be an address). 
+For compatibility with both C and Fortran, {\tt fastlap} expects all 
+arguments to be addresses.  
+
+Multi-dimension arrays are a problem when a Fortran 
+program calls a C procedure, as the C procedure has no information
+on the configuration of the array axes in memory.  The work-around  is 
+that any argument which might logically be set up as a multi-dimension
+array must be set up with a single axis (as a vector).  This is the case
+for the coordinates of the panel vertices, and so the example programs
+described in \S\ref{s:example} are particularly helpful on this
+point.
+
+The interface to \fas looks like:
+
+\begin{verbatim}
+int fastlap(plhsSize, prhsSize, pnumSing, px, pshape, pdtype,
+   plhsType, prhsType, plhsIndex, prhsIndex, plhsVect, prhsVect,
+   pxf, pxnrm, pnumLev, pnumMom, pmaxItr, ptol, pjob)
+
+int *plhsSize, *prhsSize, *pnumSing, *pshape, *pdtype, 
+   *plhsType, *prhsType, *plhsIndex, *prhsIndex, *pnumLev, 
+   *pnumMom, *pmaxItr, *pjob;
+
+double *px, *plhsVect, *prhsVect, *pxf, *pxnrm, *ptol;
+
+\end{verbatim}
+\noindent
+In which:
+\begin{description}
+\item[{\tt fastlap}] returns an integer.  This integer is the number of
+iterations performed by the GMRES procedure.  If it is equal to
+{\tt maxItr}, then the GMRES procedure may not have converged and
+{\tt tol} should be examined.  If it is equal to zero, then no GMRES
+iterations have taken place (this is a correct return if a field
+computation has been performed (see {\tt job} below)).
+
+\item[{\tt plhsSize}] points to an integer specifying the number of unknown
+singularity strengths on the left-hand side and the number of evaluation
+points. (\it N.B. \rm solution of under- or 
+over-determined systems is not supported.)  This integer is represented by 
+$N$ in this text.
+
+\item[{\tt plhsSize}] points to an integer specifying the number of known 
+singularity strengths on the right-hand side.  This integer need not equal
+the number of singularity strengths on the left-hand side, or the number
+of evaluation points.
+
+\item[{\tt pnumSing}] points to an integer specifying the total number of 
+singularities in the problem whether on the right- or left-hand side. 
+This integer is represented by $M$ in this text.
+
+\item[{\tt px}] points to a double precision vector of length 
+$3*4*M$. px[(i*4*3)+(j*3)+k] is the coordinate $x_k$ of 
+the $j^{th}$ node of the $i^{th}$ singularity.  
+If the  $i^{th}$ 
+singularity is a quadrilateral panel, then there will be twelve such 
+numbers; if the $i^{th}$ singularity is a triangular panel, then there 
+will be nine; and if the  $i^{th}$ singularity is a point singularity, 
+then there will be three.  The ordering of the vertices for panels 
+$k=1,2,3,(4)$ must be such that they appear clockwise to an observer 
+\it inside \rm the computational domain (this insures the correct 
+sign on the self influence of a dipole distribution).  
+
+\item[{\tt pshape}] points to an integer vector of length $M$. 
+{\tt pshape[i]} indicates the number of vertices which make up the 
+geometry of the singularity.  The currently supported possibilities are
+1 for point singularities, 3 for triangular panels, and 4 for quadrilateral
+panels.
+
+\item[{\tt pdtype}] points to an integer vector of length $M$. 
+{\tt pdtype[i]} indicates whether the source and/or dipole are to 
+be evaluated for the $i^{th}$ singularity, in which case {\tt pdtype[i] = 0}; 
+or the scalar product of the vector {\tt pxnrm} with the gradient of the  
+source and/or dipole are to be evaluated for the $i^{th}$ singularity,
+in which case {\tt pdtype[i] = 1}.  The specification
+of {\tt pxnrm} allows several different computations to be made, see
+below.
+
+\item[{\tt plhsType}, {\rm and} {\tt prhsType}] point to integer vectors of length 
+$M$.  {\tt prhsType[i]} or {\tt plhsType[i]} indicates the type of 
+the $i^{th}$ singularity when its influence is accounted for on the right- or
+left-hand sides of the equation.  In 
+the typical Green formulation discretized by a panel method, the  $i^{th}$
+singularity is a panel and appears as a dipole distribution on the left-hand
+side and a source distribution on the right-hand side or \it vice versa.  \rm
+{\tt prhsType[i] or plhsType[i]} may be {\tt NULL}, in which case the panel 
+does not appear in the calculation on the corresponding side of the equation.
+
+\item[{\tt plhsIndex}, {\tt prhsIndex}] point to integer vectors of 
+length $n*M$, where $n$ is a small, positive integer. $n$ corresponds to 
+the order of the approximation of the solution and boundary conditions. For
+instance if the problem were discretized by linear-strength, planar 
+triangular panels, then 3 strengths would be required for each panel and
+$n=3$.  Currently, only $n=1$ is supported, so these index vectors are
+of length $M$. So {\tt prhsVect[prhsIndex[i]]} or {\tt plhsVect[plhsIndex[i]]}
+provides the strength for the $i^{th}$ singularity when its influence is
+evaluated on the right- and left-hand sides of the equation, respectively.
+Note that the length of the vectors being pointed to is $M$.  If the
+$i^{th}$  panel is {\tt NULL} on one side of the equation it does not make 
+any difference what element of {\tt prhsVect} or {\tt plhsVect} is 
+pointed to, or {\tt prhsIndex[i]} or {\tt plhsIndex[i]} may be set to zero.
+
+\item[{\tt plhsVect}, {\tt prhsVect}] point to double precision 
+vectors.  The length of these vectors is determined by the problem 
+being solved. {\tt plhsVect} points to a vector of length $N$.  
+{\tt prhsVect} points to a vector which must 
+be no greater in length than $n*M$.  {\tt prhsVect[i]} contains the value of
+the  $i^{th}$ boundary condition or the known strength of the $i^{th}$ 
+singularity.  On return,  {\tt plhsVect[i]} contains the value of the 
+solution at the $i^{th}$ evaluation point if a linear system has been solved,
+(see {\tt job} below), or {\tt plhsVect[i]} contains the value of
+the potential at the $i^{th}$ evaluation point if a field computation has
+been performed (see {\tt job} below).  
+
+\item[{\tt pxf}] points to a double precision vector of length $3*N$.
+{\tt xf[3*i+j]} is the $j^{th}$ coordinate of the  $i^{th}$ 
+evaluation point.  
+
+\item[{\tt pxnrm}] points to a double precision vector of length $3*N$.
+{\tt xf[3*i+j]} is the $j^{th}$ component of a vector associated
+with the $i^{th}$ evaluation point.  This vector is used when 
+{\tt pdtype[i] = 1}.  If the vector provided is the surface normal at
+the  $i^{th}$ evaluation point, the source formulation may be solved.
+If  the vector provided is, for instance, $(1,0,0)$, the derivative
+with respect to $x_1$ of the field may be calculated. 
+
+\item[{\tt pnumLev}] points to an integer specifying the depth to which the
+computational domain will be hierarchically decomposed.
+If {\tt *pnumLev} is set to one, there will be no multipole acceleration.
+[In Version 1.0, if {\tt *pnumLev} were set less than one or greater than 
+the maximum number of levels allowed ({\tt MAXDEP} in {\tt mulGlobal.h}) 
+then the depth would be chosen automatically. \it This feature is not
+supported in Version 2.0.\rm]
+
+\item[{\tt pnumMom}] points to an integer specifying the order of the
+multipole expansions.
+
+\item[{\tt pmaxItr}] points to an integer specifying the maximum number of
+iterations allowed for the GMRES algorithm. The GMRES
+procedure will cease iterating when the norm of the residual is less
+than {\tt *ptol} or after {\tt *pmaxItr} iterations.
+
+\item[{\tt ptol}] points to a double precision number.  On entry {\tt *ptol}
+specifies the convergence tolerance on the norm of the residual in
+the GMRES algorithm.  On exit {\tt *ptol} is equal to the norm of the
+residual at the completion of the GMRES iterations.  The GMRES
+procedure will cease iterating when the norm of the residual is less
+than {\tt *ptol} or after {\tt *pmaxItr} iterations.
+
+\item[{\tt pjob}] points to an integer.  
+If {\tt *pjob = 0} then
+{\tt fastlap} returns in the vector pointed to by {\tt plhsVect} the field 
+at {\tt *plhsSize} evaluation points located at the coordinates pointed to by 
+{\tt pxf} due to the {\tt *pnumSing} singularities located at the 
+coordinates pointed to by {\tt px} with strengths pointed to by 
+{\tt prhsVect}.  
+If {\tt *pjob = 1} or {\tt *pjob = 2} then
+{\tt fastlap} returns in the vector pointed to by {\tt plhsVect} the solution
+vector at {\tt *plhsSize} evaluation points located at the coordinates 
+pointed to by {\tt pxf} due to the {\tt *pnumSing} singularities located 
+at the coordinates pointed to by {\tt px}.  If {\tt *pjob = 1} then
+{\tt *prhsSize} of these singularities appear on the right-hand side 
+with strengths corresponding to the boundary conditions pointed to by 
+{\tt prhsVect} (a Green's theorem formulation).  If {\tt *pjob = 2} then 
+the right-hand side is simply a known vector of length {\tt *prhsSize} with 
+elements pointed to by {\tt prhsVect} (an indirect formulation). 
+\end{description}
+
+\newpage
+\section{Strategies for Effective Use of \fas}
+\label{s:strat}
+The parameters: {\tt size, numMom, numLev,} and {\tt tol}.  
+all affect the cpu time and memory required for a solution.
+The effect of  {\tt size} and {\tt numMom} on the cpu time required 
+for a solution is approximately:
+
+\begin{quote}
+Time $\sim$ size $*$ numMom$^4$
+\end{quote} 
+
+\noindent and
+
+\begin{quote}
+Memory $\sim$ size $*$ numMom$^2$
+\end{quote}
+
+The effect of {\tt numLev} is difficult to predict because it depends on
+the condition of the linear system.  As {\tt numLev} increases, the result 
+is that more of the matrix-vector product is performed by the multipole 
+approximation, so increasing {\tt numLev} may increase the efficiency of 
+the computation.  However, as {\tt numLev} increases, the preconditioner
+will have smaller overlapping sub-matrices to invert because the finest-grain 
+nearest neighbors will include a decreasing number of panels, so 
+increasing {\tt numLev} may increase the number of iterations required
+to pass the tolerance test.  
+
+The effect of {\tt tol} is also difficult to predict because it is 
+coupled with {\tt size}.  In practical computations, the set-up of the
+data structures may account for 50\% of the computation time, so 
+increasing {\tt tol} and causing several more matrix-vector products
+to be performed may only increase the total time required by 10 to 
+20\%.  
+
+\noindent
+The following are some suggestions on how to pick these parameters:
+
+\begin{description}
+\item[{\tt *pnumSing}] is the number of singularities used to characterize 
+the problem.  The calling routine is responsible for the 
+discretization and \fas does not alter this discretization in any way.
+Note that with this accelerated algorithm one is free to use finer 
+discretizations and attack larger problems than one is normally accustomed to.
+
+\item[{\tt *pnumMom}] controls the accuracy with which singularity 
+influences are computed when they are approximated by multipole expansions.  
+Since a portion of the computing time increases like the fourth power
+of the number of multipole coefficients, it is important to make
+this parameter as small as possible.  Unfortunately, the 
+error bounds in \cite{greeng87} are much too conservative
+to provide guidance and practical bounds are not yet available.  It is
+suggested that one begin with a low order, such as 2, and then 
+increase the order to check the accuracy.
+
+\item[{\tt *pnumLev}] controls the depth to which the computational 
+domain is hierarchically decomposed.   In problems for which 
+preconditioning is supported and has been selected, the choice
+of {\tt *pnumLev} can greatly alter the computing time for 
+a problem.  This is because as  {\tt *pnumLev} is reduced, more
+of the problem is done directly, which increases the computation 
+times, but it is the direct problem which is the basis of the 
+preconditioning, so the convergence of the GMRES procedure
+may be accelerated.  Experimentation with your particular type
+of problem is warranted.  In many problems it is advantageous to 
+select  {\tt *pnumLev} so that there are only a few singularities in
+a finest grain cube.
+%If {\tt *pnumLev} is chosen to be less than one, then \fas 
+%will automatically choose the depth, based on {\tt numMom} and the 
+%density of the discretization, so as to maximize the efficiency of
+%the solution.  The condition for choosing the depth of the hierarchy
+%is that finest-grain cubes contain no more than 
+%$1 + ${\tt (numMom)}$^2$ panels.  This simple approach may not always 
+%be adequate, so experimentation and experience may yield 
+%better results for particular problems.
+
+%Specifying zero order expansions and allowing automatic depth selection
+%forces \fas to partition space into cubes containing at most one 
+%panel. This produces an excessive number of partitioning levels and 
+%is likely to rquire unnecessarily large amounts of memory.
+
+%Using less than the automatically set partitioning depth usually 
+%decreases the fraction of the influences approximated by
+%multipoles. This typically leads to slightly longer run times, though 
+%it can improve accuracy depending on the expansion order selected 
+%({\tt numMom}).
+
+If {\tt numLev} is set to one, then all panels are nearest neighbors.
+In this case, all interactions will be computed directly with 
+order $N^2$ effort and with order $N^2$ memory required. 
+
+\item[{\tt *ptol}] controls the accuracy of the solution of the linear system
+regardless of the choice of the accuracy of the representation of the 
+interactions of the panels.  It is important to note that Krylov 
+subspace methods like GMRES have effort and storage requirements which
+increase with the square of the number of iterations, so the overall
+effort and storage requirements for computing the iterates is roughly
+order $N$ {\it only as long as the number of iterations is much less than $N$}.
+\footnote{In our experience, the preconditioners ensure this.}
+\end{description} 
+
+\newpage
+\section{Messages: Diagnostics, Warnings, and Errors}
+\label{s:mess}
+
+There are three types of output produced by \fas.  Diagnostic output
+which can inform you about how the solution is being computed is written 
+to {\tt stdout} if you request it.  Warnings about fragile aspects of your
+solution are also written to {\tt stdout} unless you suppress them.  Finally
+fatal errors are written to {\tt stderr} before execution is halted.
+
+\subsection{Setting Output Flags}
+\label{ss:setting}
+
+\fas provides diagnostic output which is turned on by setting flags
+in {\tt mulGlobal.h} under the heading:
+
+\begin{quote}
+{\tt /* Output Format Configuration */}
+\end{quote}
+
+\noindent
+This section describes what output is available, and how the flags can 
+be set to obtain such output.
+
+If any of the global flags in \ref{t:flag} are set for printing, 
+then the associated information will be written to {\tt stdout}.  
+This information includes non-fatal warnings, resource usage, and 
+the algorithm configuration.  If all flags are all set to {\tt OFF} then 
+the only information written will be non-fatal warnings.
+Regardless of flag settings, fatal error messages are written to 
+{\tt stderr}.   
+
+Table~\ref{t:flag} describes the output configuration 
+flags in more detail than is found in the comments in {\tt mulGlobal.h}.
+
+\begin{table}
+\label{t:flag}
+\begin{center}
+\begin{tabular}{llp{3.5in}}\hline
+\multicolumn{1}{c}{Flag} &\multicolumn{2}{c}{Function}\\\hline
+{\tt NOWARN} & {\tt OFF} & Prints non-fatal warnings.\\ 
+{\tt CMDDAT} & {\tt ON} & Prints brief \fas configuration 
+information.\\
+{\tt ITRDAT} & {\tt ON} & Prints the residual norm after each 
+iteration.\\
+{\tt TIMDAT} & {\tt ON} & Prints a summary of CPU time and memory usage. 
+Times are only reported if \fas is compiled using the correct flags 
+for your operating system.  See \S\ref{ss:comp}\\
+
+{\tt CFGDAT} & {\tt ON} & Prints core configuration flags.\\
+{\tt MULDAT} & {\tt ON} & Prints brief multipole setup information.\\
+{\tt DISSYN} & {\tt ON} & Prints summary of cube involvement by partitioning level.\\
+{\tt DMTCNT} & {\tt ON} & Prints the number of multipole transformation matrices for all possible cube pairings.\\
+\end{tabular}
+\end{center}
+\caption{{\tt \fas} output configuration compile flags (defined in 
+{\tt mulGlobal.h}).}
+\label{outpu}
+\end{table}
+
+\subsection{Warnings}
+\label{ss:warn}
+
+These warnings will appear on stdout if {\tt NOWARN} 
+is set to {\tt OFF} (see Table \ref{t:flag}).  The first part of every 
+warning contains the name of the procedure from which it was 
+written.  The following is a list of warnings which may be
+written by \fas and explanations which should help you in diagnosing
+problems.  Values which appear in quotes (``\ '') are for example only.
+
+\begin{description}
+
+\item[{\tt FLW-initcalcp: Panel skewed beyond the PLANAR TOL tolerance.}]
+The vertices of the panel are further away from the plane passing through 
+the four midpoints of the four straight sides which connect the four
+vertices than the tolerance set by the variable 
+{\tt PLANAR TOL}.
+This quantity is defined in the file {\tt calcp.c} by the line: 
+{\tt define PLANAR TOL 1.0e-3}.  Approximating skewed quadrilaterals 
+by planar quadrilaterals contributes to discretization error.  This is 
+not an exclusive feature of the multipole accelerated algorithm but 
+rather of planar panel algorithms in general.  You 
+should set {\tt PLANAR TOL} to whatever value your experience leads 
+you to have confidence in.
+
+\item[{\tt FLW-gmres: exiting without converging.}]
+The GMRES iterative system solver has failed to converge to within
+{\tt tol} after {\tt maxItr} iterations.  This is not fatal, as your
+calling program may wish to supply a remedy and continue.
+
+\item[{\tt FLW-mulMatUp: no multipole expansions at level ``5'' (lowest)}]
+\item[{\tt FLW-mulMatUp: no multipole expansions at level ``4''}]
+\item[{\tt FLW-mulMatUp: no multipole acceleration.}]
+
+At any level, \fas always checks to see whether multipole acceleration
+is warranted.  At finest grain (lowest) there will be no acceleration, 
+and with smaller problems this will continue to be the case at levels closer 
+to level zero.  If no level will benefit from multipole acceleration, then
+the last message will be written.
+
+\item[{\tt FLW-fastlap: compilation with OTHER flag gives incorrect times.}]
+The correct compilation flags are required if {\tt TIMDAT} is set to {\tt ON}.
+See \S\ref{ss:comp}.
+
+\item[{\tt FLW-placeq: oversized panel, cube length = 0.01 panel 
+length = 0.02}\quad] 
+If a very non-uniform surface discretization is used, panels may be larger
+than a finest-grain cube.  This violates the conditions upon which the 
+theorems for the error bounds are founded~\cite{greeng87}.  These error 
+bounds are rather conservative in practice and so panels which are only 
+slightly larger than a   finest-grain cube (less than approximately 20\% larger) 
+are probably acceptable, but this condition may result in a loss of accuracy.
+The remedy is to 
+provide a more uniform discretization or to reduce the number of decomposition 
+levels. 
+
+\end{description}
+
+\subsection{Errors}
+\label{ss:error}
+
+The messages reported to {\tt stderr} are fatal and when they appear
+\fas will terminate.  The first part of every 
+error message contains the name of the procedure from which it was 
+written.  
+
+\subsubsection{Input Errors}
+
+\fas screens the input for unacceptable data and reports such data if
+it is detected.  Other input related errors are detected during a run,
+particularly when memory is allocated.   The following is a list of 
+error messages which may be written by \fas and explanations which 
+should help you in diagnosing problems:
+
+\begin{description}
+
+
+\item[{\tt FLE-initcalcp: Convex panel in input.}]
+
+There is a quadrilateral panel for which after projection onto the plane
+(see the description of {\tt x} in the \S\ref{ss:iface}) one 
+vertex is in the interior of the triangle which is formed by line 
+segments connecting the other three vertices.  Such panels are illegal.
+
+\item[{\tt FLE-fastlap: bad expansion order: ``8''}] 
+
+The value of {\tt numMom} is less than zero, or greater than 
+{\tt MAXORDER}.  {\tt MAXORDER} is defined in {\tt mulGlobal.h}.
+
+\item[{\tt FLE-fastlap:  Missing boundary condition.}]
+
+The input data list for a panel is not complete.
+
+\item[{\tt FLE-./mulSetup.c: out of memory at line ``158''}]
+\item[{\tt  (NULL pointer on ``1024'' byte request)}]
+\item[{\tt FLE-placeq: ``7'' levels set up}]
+
+Your problem requires more virtual address space than is available.
+The last line indicates that seven levels have been set up 
+properly, so if you set {\tt numLev} to seven, you should be
+able to complete the run.  You may run out of memory in 
+other sections of the code besides where the multipole 
+matrices are being set up.  In that case you should reduce
+{\tt numLev} to one less than the level reported under  
+{\tt MULTIPOLE SETUP SUMMARY} (which is reported if  {\tt MULDAT}
+is set to {\tt ON}, See Table \ref{t:flag}).
+
+\end{description}
+
+\subsubsection{Run-Time Errors}
+
+\fas is a program under development and as such is likely to have 
+a variety of bugs.  There are quite a few additional error messages
+which you may encounter \it en route \rm to finding these bugs.  It
+is hoped that these messages will be helpful.
+
+\newpage
+\section{Example Drivers for \fas}
+\label{s:example}
+
+The content of this distribution is based on the assumption that
+\fas users are sophisticated numerical analysts.  
+For such users, we think that examples are more useful than detailed
+explanations.  In that spirit there are several example programs 
+provided in the distribution, written in C and Fortran, which invoke 
+\fas for the solution of a various different problem formulations.  
+To see what is available, type {\tt make} in {~/fastlap}.  These example programs obtain 
+solution parameters from the user, read geometry and boundary 
+condition data from files, invoke {\tt fastlap}, and report 
+on the results.  The two most useful programs are the Fortran program 
+called {\tt driver.f} and the C program called {\tt driver.c}.
+
+These programs are provided:
+\begin{itemize}
+\item{to guide you in tailoring your own Fortran or C code to call {\tt fastlap};}
+\item{to allow you to experiment with setting {\tt fastlap} flags without
+the uncertainties of linking to your own code;}
+\item{and to provide you with an easy means to test {\tt fastlap} on your
+own input data.}
+\end{itemize}
+
+The file of geometric input consists of lines of panel data for the boundary 
+of the Laplace problem or field computation.  Other elements in the 
+{\tt fastlap} argument list (described in \S\ref{ss:iface}) 
+are provided by the driver depending on what
+type of example computation you elect to perform.  The possibilities are a 
+field computation, a Green formulation solution, a single-layer solution,
+a source formulation solution, a desingularized single-layer solution,
+and a desingularized source formulation solution, depending on the driver
+you are using.   The two parameters which 
+control the multipole acceleration {\tt numMom}, the number of
+multipole coefficients and {\tt numLev}, the number of levels in the 
+hierarchical spatial decomposition, are provided by user in answers 
+to queries in the Fortran programs and in command line arguments in the
+C program.
+
+To make the C program, type:
+
+{\tt make driverc}
+
+\noindent
+This will create an executable {\tt driverc}.  To run this program, the
+command is, for example:
+
+{\tt driverc -o2 -d4 -n1152 sphere.in}
+
+\noindent
+In this case, we are asking that the expansion order be 2, the depth
+of the cube hierarchy be 4, the number of panels be 1152, and the data
+for these panels will be found in {\tt sphere.in}.  
+
+To make the Fortran program, type:
+
+{\tt make driverf}
+
+\noindent
+This will create an executable {\tt driverf}.  To run this program, the
+command is:
+
+{\tt driverf}
+
+\noindent
+When you run this Fortran program you will be asked for 
+the expansion order, the depth of the cube hierarchy, and the name of 
+the panel data file.
+
+As example data, there is a file provided in the distribution called 
+{\tt sphere.in}.  This is the data for a sphere with unit radius translating
+in an infinite fluid.  Neumann conditions are imposed on half of the
+sphere and Dirichlet conditions are imposed on the other half of the
+sphere.  The sphere has been discretized into 1152 panels by equal 
+subdivision of the polar \footnote {The polar angle is measured from
+the positive sense of the $x_3$ axis.}
+and azimuthal angles.  The program which 
+created this data is in the file {\tt sphere.f}, so you may create
+other discretizations and boundary conditions for yourself.  
+
+The translating sphere is a useful example problem as the solution is
+known in closed form.  For the unit sphere translating at unit velocity 
+in an ideal fluid, in this case parallel to the $x_3$ axis and in the 
+direction of its positive sense, the potential is known to be:
+
+\begin{equation}
+\psi(x) = - {1 \over 2} {x_3 \over ||x||^3}.
+\label{eq:psisphere}
+\end{equation}
+
+\noindent
+The program made from {\tt sphere.f}, say, {\tt sphere}  writes the ``exact'' 
+values of the potential and the normal
+derivative of the potential into the data file {\tt fastlap.in} regardless
+of what boundary conditions are selected.  Therefore, {\tt driverc} and
+{\tt driverf} have both the boundary conditions and the exact solution 
+for this problem.  This allows these programs to compare the solution 
+computed by \fas to the exact solution and report the magnitude of the 
+average and maximum errors on the section of the sphere with Neumann
+boundary conditions, if you have specified one, and the section of the 
+sphere with Dirichlet boundary conditions, if you have specified one.
+
+{\tt sphere} writes {\tt fastlap.in} in a format which can be read
+by {\tt driverc}.  To create an input file which can be read by 
+{\tt driverf}, you must invoke the shell script {\tt c2fdata} which
+is provided.  This script uses two {\tt sed} commands to create a
+file formated for {\tt driverf} from one formated for {\tt driverc}.
+For instance, to convert {\tt sphere.in} to a file which can be read 
+by {\tt driverf}, say, {\tt sphere.dat}, the command is:
+
+{\tt c2fdata sphere.in sphere.dat}
+
+Having made the Fortran driver as indicated above, the command to run it is:
+
+{\tt driverf}
+
+\noindent
+Then the output written to {\tt stdout} if the Green formulation option is
+selected will be as follows:
+\footnote{
+A run of {\tt driverc} will result in similar output.
+}
+\vfill\break
+\begin{verbatim}
+xmeyer@flying-cloud.mit.edu> driverf
+
+
+You can test the Green formulation, a single layer
+formulation, the source formulation, or a field
+computation.  If you use the input for the sphere
+translating in an infinite fluid, there will be
+error checking as the solution is known.  For
+this case, the input file should be one written
+by sphere.f and processed by c2fdata.
+You may, of course, use your own input data.
+
+Testing? 
+                   Field (0)
+                   Green (1)
+            Single Layer (2)
+      Source Formulation (3)
+   Repeated Single Layer (4)   1
+You can run up to 8192 panels.
+
+Select expansion order and tree depth:  2 4
+Filename for input data?  sphere.dat
+The header in this file is:
+0  16x32 sphere                                                                 
+ Looking for          512 panels.
+
+FastLap CONFIGURATION FLAGS:
+  General Configuration
+    NOWARN == OFF (warnings written on stdout)
+    NOABRT == ON (slow fatal error traps disabled)
+  Multipole Configuration
+    DNTYPE == GRENGD (full Greengard dwnwd pass)
+    MULTI == ON (include multipole part of P*q)
+    RADINTER == ON (allow parent level interaction list entries)
+    NNBRS == 2 (max distance to a nrst neighbor)
+    ADAPT == ON (adaptive - no expansions in exact cubes)
+    OPCNT == OFF (no P*q op count - iterate to convergence)
+    MAXDEP == 20 (assume no more than 20 partitioning levels are needed)
+  Linear System Solution Configuration
+    ITRTYP == GMRES (generalized minimum residuals)
+    PRECOND == OL (use overlapped preconditioner)
+FLW-placeq: oversized panel, cube length=0.124633 panel length=0.196034
+FLW-placeq: oversized panel, cube length=0.124633 panel length=0.20322
+FLW-placeq: oversized panel, cube length=0.124633 panel length=0.21587
+FLW-placeq: oversized panel, cube length=0.124633 panel length=0.231358
+FLW-placeq: oversized panel, cube length=0.124633 panel length=0.247029
+FLW-placeq: oversized panel, cube length=0.124633 panel length=0.260672
+FLW-placeq: oversized panel, cube length=0.124633 panel length=0.27065
+FLW-placeq: oversized panel, cube length=0.124633 panel length=0.275899
+FLW-placeq: oversized panel, cube length=0.124633 panel length=0.196034
+FLW-placeq: oversized panel, cube length=0.124633 panel length=0.20322
+
+FastLap ARG LIST SUMMARY:
+  Number of singularities to process: 512
+  Number of field or collocation points: 512
+  Expansion order: 2
+  Number of partitioning levels: 4
+  Maximum allowed iterations: 32
+  Convergence tolerance: 0.0001
+
+
+MULTIPOLE SETUP SUMMARY:
+  Level 0 cube extremal coordinates
+    x: -0.980908 to 1.01322
+    y: -0.980908 to 1.01322
+    z: -0.98719 to 1.00693
+  Level 4 (lowest level) cubes
+    4096 total
+    side length = 0.124633
+  Maximum number of singularities in any = 9
+  Maximum number of singularities treated exactly = 9 (limit = 9)
+  No multipole expansions at level 4 (lowest)
+  No multipole expansions at level 4 (lowest)
+  Preconditioning matrix for inversion size = 34
+
+
+GMRES RESIDUAL MONITOR:
+  Iteration #1,  ||res|| = 0.049624
+  Iteration #2,  ||res|| = 0.0324506
+  Iteration #3,  ||res|| = 0.0125331
+  Iteration #4,  ||res|| = 0.00615999
+  Iteration #5,  ||res|| = 0.00222703
+  Iteration #6,  ||res|| = 0.000680654
+  Iteration #7,  ||res|| = 0.000205777
+  Iteration #8,  ||res|| = 5.68166e-05
+  Total GMRES iters = 8
+
+
+TIME AND MEMORY USAGE SYNOPSIS
+  Total time: 5.978
+    Total setup time: 4.2173
+      Data structure setup time: 0.334768
+      Direct matrix setup time: 0.613904
+      Multipole matrix setup time: 3.26862
+      Initial misc. allocation time: 0
+    Total iterative P*q = psi solve time: 1.7607
+      P*q product time, direct part: 0.709552
+      Total P*q time, multipole part: 0.847168
+        Upward pass time: 0.010736
+        Downward pass time: 0.0976
+        Evaluation pass time: 0.738832
+      Preconditioner solution time: 0.193248
+      Iterative loop overhead time: 0.010736
+  Total memory allocated: 5389 kilobytes (99.1% efficiency)
+    Q2M  matrix memory allocated:      32 kilobytes
+    Q2L  matrix memory allocated:     360 kilobytes
+    Q2P  matrix memory allocated:    2931 kilobytes
+    L2L  matrix memory allocated:       5 kilobytes
+    M2M  matrix memory allocated:       6 kilobytes
+    M2L  matrix memory allocated:      23 kilobytes
+    M2P  matrix memory allocated:     219 kilobytes
+    L2P  matrix memory allocated:      16 kilobytes
+    Miscellaneous mem. allocated:    1793 kilobytes
+    Total memory (check w/above):    5389 kilobytes
+
+
+  8 iterations knocked down residual to:0.56816614E-04
+
+
+Average absolute error on Dirichlet surface =   0.00380307
+Maximum absolute error on Dirichlet surface =   0.02800870
+xmeyer@flying-cloud.mit.edu> 
+\end{verbatim}
+
+Note that in this case there are panels which exceed the dimensions of 
+finest-grain cubes, but accurate answers are still obtained.  It is 
+suggested that this same data file ({\tt sphere.in} or {\tt sphere.dat}) be 
+used to run \fas with other input parameters 
+%such as automatic depth selection ({\tt -d-1}), 
+to see how run times and accuracy are affected.
+
+
+There are variations on these computations which one can exercise by
+activating lines in {\tt driver.f} by removing comment indicators.  
+These include scrambling the ordering of the evaluation
+points, changing the extent of the desingularization, and moving
+the evaluation points in space.  
+
+\newpage
+\section{The \fas Distribution}
+\label{s:dist}
+A compressed tar file containing the files of the \fas source code, the 
+example drivers and utilities source codes, the sample input, the makefile, 
+and this manual, 
+is available via anonymous ftp at {\tt rle-vlsi.mit.edu}.  The archive 
+is in {\tt pub/fastlap} and its file name has the form:
+
+\begin{quote}
+\begin{verbatim}
+fl-version-date.tar.gz
+\end{verbatim}
+\end{quote}
+\noindent
+where {\tt version} is the version number and {\tt date} is the release 
+date for the version.  After retrieval, this archive may be unpacked by:
+\begin{quote}
+\begin{verbatim}
+gunzip fl-version-date.tar.gz
+tar xf fl-version-date.tar
+\end{verbatim}
+\end{quote}
+The top-level directory is called {\tt fastlap}.  This 
+directory contains the makefile, utilities, and some  
+sample input files.     
+{\tt fastlap/}  has three subdirectories:
+{\tt fastlap/src/} which contains the C and Fortran drivers, the C source and header 
+files for \fas; {\tt fastlap/desing/} which contains the input files for the example
+desingularized problems; and {\tt fastlap/doc/} which contains the \LaTeX, dvi, and 
+Postscript files for this manual.
+
+Correspondence concerning \fas should be sent to:
+\begin{quote}
+Dr. F. T. Korsmeyer\\
+Research Laboratory {\em of}  Electronics\\ 
+Massachusetts Institute of Technology, Room 36-893\\
+Cambridge, MA 02139 U.S.A.
+\end{quote}
+
+Electronic mail may be sent to: {\tt xmeyer@mit.edu}. 
+
+\newpage
+\appendix
+\section{Mathematical Background}
+\label{s:comp}
+In this section we review the theory for potential 
+problems cast as boundary integral equations, but this review is quite 
+terse and we encourage the reader to consult the references 
+provided (for the details of multipole acceleration) and the standard
+texts (for the details of potential theory).  We discuss the 
+equation that results from the use of Green's Second Identity
+(or ``Green's Theorem'').  The extension to the single-layer, the
+source, and the desingularized formulations is straightforward.
+
+\fas is a procedure that can be used to solve Laplace problems 
+cast as discretized boundary integral equations. \fas requires only 
+order $N$ effort and storage, where $N$ is the number of unknowns on 
+the boundary. The reduction in cost compared to traditional order $N^2$ 
+methods is achieved through never explicitly calculating  all but an 
+order $N$ subset of the $N^2$ interactions implied by the linear system,
+while still providing the matrix-vector products that are required in 
+the iterative solution of the problem~\cite{korsmeyer93}.
+
+If we consider the general, three-dimensional Laplace problem 
+in the multiply-connected domain bounded by surfaces $S_D$, where 
+Dirichlet boundary conditions are imposed ($\psi(x)$ is known), 
+and $S_N$, where Neumann boundary conditions are imposed 
+($\psi_n(x)$ is known) (this includes the special cases of 
+strictly Neumann or Dirichlet boundary conditions),  an integral equation 
+can be derived via Green's theorem from which it follows that for 
+each point $ x $ on a piecewise smooth surface $ S = S_D \cup S_N $, 
+the potential, $ \psi(x) $, must satisfy
+\begin{equation}
+\label{eq:direct}
+2 \pi \psi(x) + \int_S \psi(x') G_n (x,x') da'
+- \int_S \psi_n (x') G(x,x')da' = 0.
+\end{equation}
+where 
+\begin{equation}
+\label{eq:green}
+G(x,x') = \frac{1}{\| x - x' \|} 
+\end{equation}
+and the subscript $n$ denotes
+the operation $\hat n \cdot \vec \nabla$ in which $\hat n$ is the unit
+surface normal vector.
+Given (\ref{eq:direct}), the surface potential can be determined
+uniquely if for each point $ x $ on $ S $, the potential
+$ \psi(x)$ and its normal derivative
+$ \psi_n(x)$ are constrained to satisfy
+\begin{equation}
+\label{eq:genbc}
+\beta(x) \psi(x) + \gamma (x) \psi_n(x) = g(x).
+\end{equation}
+
+An approach to numerically solving (\ref{eq:direct}) and (\ref{eq:genbc}),
+referred to as a \it panel method, \rm  
+is to divide the surface $S$ into $M$ subsurfaces and then assume
+that $ \psi $ and $ \psi_n $ vary in some polynomial fashion 
+over each subsurface, requiring a total of $N$ coefficients.  
+Insisting that this approximation satisfies (\ref{eq:direct}) and 
+(\ref{eq:genbc}) at a collection of $N$ collocation points, denoted 
+$ \{ x_i \} $, leads to a system of equations of the form
+\begin{equation}
+\label{eq:discdir}
+D p - P p_n = 0
+\end{equation}
+and
+\begin{equation}
+\label{eq:discbc}
+\Upsilon p + \Gamma  p_n = g
+\end{equation}
+where $ p, p_n \in \Re^N $ are the vectors of coefficients of
+the polynomial approximations to $ \psi $ and $ \psi_n $
+respectively, $ \Upsilon, \Gamma \in \Re^{N \times N} $ are
+diagonal matrices whose diagonal elements are given by
+$ \Upsilon_{jj} = \beta(x_j) $ and $ \Gamma_{jj} = \gamma(x_j) $.
+The entries in $ P, D \in \Re^{N \times N} $ are given by
+\begin{equation}
+\label{eq:sourcepan}
+P_{i,j} = \sum_{m=1}^M \int_{S_m} {f(x')\over \|x' - x_i\|} da',
+\end{equation}
+and
+\begin{equation}
+\label{eq:dipolepan}
+D_{i,j} =  \sum_{m=1}^M \int_{S_m}
+f(x')\vec\nabla {1\over \|x' - x_i\|} \cdot \hat n \; da',
+\end{equation}
+where $S_m$ is an approximate subsurface of $S$, defining the support of 
+$f(x),$ a polynomial basis function.
+Upon specification of the boundary data, typically (but not necessarily) 
+a collection of $N$ values of $\psi(x)$ or $\psi_n(x)$, we have a linear 
+system to solve that appears as:
+\begin{equation}
+\label{eq:discfinal}
+C q = \tilde C \tilde q
+\end{equation}
+where $C_{i,j} = P_{i,j}, q_i = p_i, 
+\tilde C_{i,j} = D_{i,j},$ and $\tilde q_i = p_{ni}$, if $p_i$ 
+is unknown; and $C_{i,j} = D_{i,j}, q_i = p_{ni},
+\tilde C_{i,j} = P_{i,j},$ and $\tilde q_i = p_i$, if $p_{ni}$ 
+is unknown.  
+
+It is the vectors $Cq$ and $\tilde C \tilde q$ that \fas provides
+with order $N$ cost.  Apparently, the $i^{th}$ element of 
+$Cq$ or $\tilde C \tilde q$ is the value of the potential at $x_i$
+due to the $N$ singularities with influences described by $C_{i,j}$
+and  $\tilde C_{i,j}$ with strengths $q$ and $\tilde q$, respectively.
+
+This computation performed rapidly by \fas is 
+the evaluation the potential due to a collection of singularities of 
+\it known \rm strength.  In the
+solution of a Laplace problem the strengths are known in the sense that they 
+are either $\tilde q,$ the boundary data, or $q,$ an iterate in a solution 
+algorithm in which we seek to minimize the residual in numerically 
+evaluating equation~(\ref{eq:discfinal}).
+
+\nocite{greeng88, newman}
+\begin{thebibliography}{}
+
+\bibitem{nabors91}
+K.~Nabors and J.~White, ``Fastcap: A multipole accelerated {3-D} capacitance
+  extraction program,'' {\em {IEEE} Transactions on Computer-Aided Design of
+  Integrated Circuits and Systems}, vol.~10, pp.~1447--1459, November 1991.
+
+\bibitem{nabors94}
+K. Nabors, F. T. Korsmeyer, F. T. Leighton and J. White, ``Preconditioned, Adaptive, Multipole-Accelerated Iterative Methods for Three-Dimensional First-Kind Integral Equations of Potential Theory,''	 {\em {SIAM} J. Sci. Comp.}, vol. 15, no. 3, pp. 713--735, May 1994.
+
+\bibitem{korsmeyer93}
+F. T. Korsmeyer, D. K. P. Yue, K. Nabors and J. White, ``Multipole-Accelerated Preconditioned Iterative Methods for Three-Dimensional Potential Problems,'' {\em Proceedings of BEM 15} pp.517--527, Worcester, Massachusetts, August 1993. 
+
+\bibitem{saad86}
+Y.~Saad and M.~H. Schultz, ``{GMRES}: A generalized minimal residual algorithm
+  for solving nonsymmetric linear systems,'' {\em {SIAM} J. Sci. Stat. Comp.}, 
+  vol.~7, pp.~856--869, July 1986.
+
+\bibitem{newman}
+J.~N. Newman, ``Distributions of sources and normal dipoles over a
+  quadrilateral panel,'' {\em J. Eng. Math.}, no.~20,
+  pp.~113--126, 1986.
+
+\bibitem{vavasi92}
+S. A. Vavasis, ``Preconditioning for Boundary Integral Equations.'' {\em {SIAM} J. Matrix Anal. and App.}, vol. 13, no. 3, pp.905--925, July 1992. 
+
+\bibitem{greeng87}
+L.~Greengard and V.~Rokhlin, ``A fast algorithm for particle simulations,''
+  {\em J. Comp. Phys.}, vol.~73, pp.~325--348, December 1987.
+
+\bibitem{greeng88}
+L.~Greengard, {\em The Rapid Evaluation of Potential Fields in Particle
+  Systems}.
+\newblock Cambridge, Massachusetts: {M.I.T. Press}, 1988.
+
+\end{thebibliography}
+
+\end{document}
+
+
+
+
+

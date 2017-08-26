@@ -1,0 +1,17 @@
+[Definition]
+PotOf           = DC*
+FieldOf         = RF
+
+[Mesh]
+MeshCenter      = 0 0 0
+DefaultMeshSize = 50e-6
+MeshRegions     = box 100e-6 100e-6 100e-6 15e-6
+WriteVTKFile    = True
+
+[Output]
+WriteVTKFile    = True
+
+[Grid]
+Center          = 0 0 50e-6
+Size            = 50e-6 50e-6 40e-6
+Spacing         = 2.5e-6
