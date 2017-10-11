@@ -14,14 +14,8 @@ Obtain BEM code:
 
   1. Download and install Git for Windows https://windows.github.com/
 
-  2. Generate a .ssh key by following insturctions at:
-       https://help.github.com/articles/generating-ssh-keys/ No password is
-       needed (leave blank)
-
-  3. Send the .ssh key to Robert
-
-  4. Now you should be able to open a Git shell and type "git clone
-       git@ions:bem.git" and give password
+  2. Now you should be able to open a Git shell and type "git clone
+       https://github.com/nist-ionstorage/bem.git"
 
 Obtain Electrode code:
 
@@ -77,9 +71,9 @@ Run Something:
 Linux
 =====
 
-After setting up git (get the ssh key to Robert) and installing numpy, scipy, myavi2 (for tvtk) and electrode if desiered , do the usual::
+After setting up git and installing numpy, scipy, myavi2 (for tvtk) and electrode if desiered , do the usual::
 
-  git clone git@ions:bem.git
+  git clone https://github.com/nist-ionstorage/bem.git
   cd bem
   python3 setup.py test
   pip3 install --user -e .
